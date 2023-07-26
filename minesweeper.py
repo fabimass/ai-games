@@ -136,6 +136,15 @@ class Sentence():
         if cell in self.cells:
             self.cells.remove(cell)
 
+    def is_empty(self):
+        """
+        Returns True if a sentence is left without any cells.
+        """
+        if len(self.cells):
+            return False
+        else:
+            return True
+
 
 class MinesweeperAI():
     """
@@ -202,6 +211,14 @@ class MinesweeperAI():
                 if (i, j) == cell:
                     continue
 
+                # Ignore if already marked as mine
+                if (i, j) in self.mines:
+                    continue   
+
+                # Ignore if already marked as safe
+                if (i, j) in self.safes:
+                    continue  
+
                 # Add neighbour to the sentence if in bounds
                 if 0 <= i < self.height and 0 <= j < self.width:
                     neighbours.append((i, j))
@@ -209,8 +226,42 @@ class MinesweeperAI():
         # Add new sentence to the knowledge base
         self.knowledge.append(Sentence(neighbours, count))
 
+        # Try to infer new things based on the current knowledge
+        new_mines = set()
+        new_safes = set()
+        
         for sentence in self.knowledge:
-            print (sentence)
+            
+            inferred_mines = sentence.known_mines()
+            if len(inferred_mines):
+                for mine in inferred_mines:
+                    new_mines.add(mine)
+
+            inferred_safes = sentence.known_safes()
+            if len(inferred_safes):
+                for safe in inferred_safes:
+                    new_safes.add(safe)
+
+        print("new mines detected: ", new_mines)
+        print("new safes detected: ", new_safes) 
+
+        for mine in new_mines:
+            self.mark_mine(mine)
+
+        for safe in new_safes:
+            self.mark_safe(safe)  
+
+        # Remove useless sentences
+        for sentence in self.knowledge:
+            if sentence.is_empty():
+                self.knowledge.remove(sentence)
+
+        print("kb: ")
+        for sentence in self.knowledge:
+            print(sentence)
+
+        print("known mines: ", self.mines)
+        print("known safes: ", self.safes)
 
     def make_safe_move(self):
         """
