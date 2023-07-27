@@ -204,6 +204,7 @@ class MinesweeperAI():
         self.mark_safe(cell)
 
         neighbours = []
+        count_mod = 0
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
 
@@ -213,6 +214,7 @@ class MinesweeperAI():
 
                 # Ignore if already marked as mine
                 if (i, j) in self.mines:
+                    count_mod += 1
                     continue   
 
                 # Ignore if already marked as safe
@@ -224,7 +226,8 @@ class MinesweeperAI():
                     neighbours.append((i, j))
 
         # Add new sentence to the knowledge base
-        self.knowledge.append(Sentence(neighbours, count))
+        if len(neighbours) > 0:
+            self.knowledge.append(Sentence(neighbours, count-count_mod))
 
         print("\n------------------------\n")
         print(f"Given that the number in cell {cell} is {count}...\n")
@@ -232,8 +235,8 @@ class MinesweeperAI():
         if len(self.knowledge):
             for sentence in self.knowledge:
                 print(sentence)
-        print(f"There are bombs in: {self.mines if len(self.mines) > 0 else None}")
-        print(f"There are safe cells in: {self.safes if len(self.safes) > 0 else None}")
+        print(f"There are known bombs in: {self.mines if len(self.mines) > 0 else None}")
+        print(f"There are known safe cells in: {(self.safes - self.moves_made) if len(self.safes - self.moves_made) > 0 else None}")
 
         # Try to infer new things based on the current knowledge
         thinking = True
