@@ -144,6 +144,18 @@ class Sentence():
             return False
         else:
             return True
+        
+    def get_cells(self):
+        """
+        Returns the cells for the sentence.
+        """
+        return self.cells
+    
+    def get_count(self):
+        """
+        Returns the count for the sentence.
+        """
+        return self.count
 
 
 class MinesweeperAI():
@@ -243,25 +255,22 @@ class MinesweeperAI():
         round = 0
         knowledge_copy = self.knowledge.copy()
         
+        print("\nThinking...\n")
+
         while thinking:
-        
+
             inferred_mines = set()
             inferred_safes = set()
+            inferred_sentences = []
             
+            # Try to infer new bombs and safe locations
             for sentence in self.knowledge:
                 
-                # Infer mine locations
                 for mine in sentence.known_mines():
                     inferred_mines.add(mine)
 
-                # Infer safe locations
                 for safe in sentence.known_safes():
                     inferred_safes.add(safe)
-
-            if (len(inferred_mines) > 0 or len(inferred_safes) > 0) and (round==0):
-                print("\nI can infer that...\n")
-            if (len(inferred_mines) == 0 and len(inferred_safes) == 0) and (round==0):
-                print("\nI cannot infer anything yet...\n")
 
             # Update knowledge base   
             for mine in inferred_mines:
@@ -270,16 +279,36 @@ class MinesweeperAI():
 
             for safe in inferred_safes:
                 print(f"There is a safe cell in {safe}")
-                self.mark_safe(safe)  
+                self.mark_safe(safe)
 
             # Clean empty sentences
             for sentence in self.knowledge:
                 if sentence.is_empty():
                     self.knowledge.remove(sentence)
 
+            # Remove duplicates
+            for i, sentence in enumerate(self.knowledge):
+                for j, other_sentence in enumerate(self.knowledge):
+                    if (sentence == other_sentence) and (i != j):
+                        self.knowledge.remove(other_sentence)
+            
+            # Try to infer new sentences
+            for sentence in self.knowledge:
+                for other_sentence in self.knowledge:
+                    if sentence != other_sentence and sentence.get_cells().issubset(other_sentence.get_cells()):
+                        inferred_sentences.append(Sentence(list(other_sentence.get_cells() - sentence.get_cells()), other_sentence.get_count() - sentence.get_count()))
+
+            # Update knowledge base
+            for sentence in inferred_sentences:
+                if sentence not in self.knowledge:
+                    print(f"I can infer that: {sentence}")
+                    self.knowledge.append(sentence)                      
+
             # End the thinking process if the knowledge base didn't change
             if self.knowledge == knowledge_copy:
                 thinking = False
+                print("\nDone thinking\n")
+
             else:
                 knowledge_copy = self.knowledge.copy()
                 round += 1
