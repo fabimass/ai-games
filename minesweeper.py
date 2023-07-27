@@ -226,42 +226,47 @@ class MinesweeperAI():
         # Add new sentence to the knowledge base
         self.knowledge.append(Sentence(neighbours, count))
 
+        print("\n------------------------\n")
+        print(f"Given that the number in cell {cell} is {count}...\n")
+        print("I know that...\n")
+        if len(self.knowledge):
+            for sentence in self.knowledge:
+                print(sentence)
+        print(f"There are bombs in: {self.mines}")
+        print(f"There are safe cells in: {self.safes}")
+
         # Try to infer new things based on the current knowledge
-        new_mines = set()
-        new_safes = set()
+        thinking = True
+        print("\nI can infer that...\n")
+        while thinking:
         
-        for sentence in self.knowledge:
+            inferred_mines = set()
+            inferred_safes = set()
             
-            inferred_mines = sentence.known_mines()
-            if len(inferred_mines):
+            for sentence in self.knowledge:
+                
+                for mine in sentence.known_mines():
+                    inferred_mines.add(mine)
+
+                for safe in sentence.known_safes():
+                    inferred_safes.add(safe)
+
+            if len(inferred_mines) == 0 and len(inferred_safes) == 0:
+                thinking = False
+            else: 
                 for mine in inferred_mines:
-                    new_mines.add(mine)
+                    print(f"There is a mine in {mine}")
+                    self.mark_mine(mine)
 
-            inferred_safes = sentence.known_safes()
-            if len(inferred_safes):
                 for safe in inferred_safes:
-                    new_safes.add(safe)
+                    print(f"There is a safe cell in {safe}")
+                    self.mark_safe(safe)  
 
-        print("new mines detected: ", new_mines)
-        print("new safes detected: ", new_safes) 
+                # Remove useless sentences
+                for sentence in self.knowledge:
+                    if sentence.is_empty():
+                        self.knowledge.remove(sentence)
 
-        for mine in new_mines:
-            self.mark_mine(mine)
-
-        for safe in new_safes:
-            self.mark_safe(safe)  
-
-        # Remove useless sentences
-        for sentence in self.knowledge:
-            if sentence.is_empty():
-                self.knowledge.remove(sentence)
-
-        print("kb: ")
-        for sentence in self.knowledge:
-            print(sentence)
-
-        print("known mines: ", self.mines)
-        print("known safes: ", self.safes)
 
     def make_safe_move(self):
         """
