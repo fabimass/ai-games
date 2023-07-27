@@ -232,12 +232,14 @@ class MinesweeperAI():
         if len(self.knowledge):
             for sentence in self.knowledge:
                 print(sentence)
-        print(f"There are bombs in: {self.mines}")
-        print(f"There are safe cells in: {self.safes}")
+        print(f"There are bombs in: {self.mines if len(self.mines) > 0 else None}")
+        print(f"There are safe cells in: {self.safes if len(self.safes) > 0 else None}")
 
         # Try to infer new things based on the current knowledge
         thinking = True
-        print("\nI can infer that...\n")
+        round = 0
+        knowledge_copy = self.knowledge.copy()
+        
         while thinking:
         
             inferred_mines = set()
@@ -245,27 +247,39 @@ class MinesweeperAI():
             
             for sentence in self.knowledge:
                 
+                # Infer mine locations
                 for mine in sentence.known_mines():
                     inferred_mines.add(mine)
 
+                # Infer safe locations
                 for safe in sentence.known_safes():
                     inferred_safes.add(safe)
 
-            if len(inferred_mines) == 0 and len(inferred_safes) == 0:
+            if (len(inferred_mines) > 0 or len(inferred_safes) > 0) and (round==0):
+                print("\nI can infer that...\n")
+            if (len(inferred_mines) == 0 and len(inferred_safes) == 0) and (round==0):
+                print("\nI cannot infer anything yet...\n")
+
+            # Update knowledge base   
+            for mine in inferred_mines:
+                print(f"There is a mine in {mine}")
+                self.mark_mine(mine)
+
+            for safe in inferred_safes:
+                print(f"There is a safe cell in {safe}")
+                self.mark_safe(safe)  
+
+            # Clean empty sentences
+            for sentence in self.knowledge:
+                if sentence.is_empty():
+                    self.knowledge.remove(sentence)
+
+            # End the thinking process if the knowledge base didn't change
+            if self.knowledge == knowledge_copy:
                 thinking = False
-            else: 
-                for mine in inferred_mines:
-                    print(f"There is a mine in {mine}")
-                    self.mark_mine(mine)
-
-                for safe in inferred_safes:
-                    print(f"There is a safe cell in {safe}")
-                    self.mark_safe(safe)  
-
-                # Remove useless sentences
-                for sentence in self.knowledge:
-                    if sentence.is_empty():
-                        self.knowledge.remove(sentence)
+            else:
+                knowledge_copy = self.knowledge.copy()
+                round += 1
 
 
     def make_safe_move(self):
