@@ -35,8 +35,8 @@ while True:
         run_game("minesweeper\\runner.py")
 
     elif user_choice == '2':
-        print("You selected Option 2")
-        # Add your code for Option 2 here
+        print("You selected Tic Tact Toe")
+        run_game("tictactoe\\runner.py")
 
     elif user_choice == '3':
         print("You selected Option 3")
