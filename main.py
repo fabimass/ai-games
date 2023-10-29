@@ -16,7 +16,7 @@ def display_menu():
 
 # Define a function for executing a given game script
 def run_game(game_path):
-    result = subprocess.run([virtualenv_path, "&&", "python", game_path], shell=True, capture_output=True, text=True)
+    result = subprocess.run([virtualenv_path, "&&", "python", "-u", game_path])
     if result.returncode == 0:
         print("Script executed successfully")
         print("Output:")
@@ -39,8 +39,8 @@ while True:
         run_game("tictactoe\\runner.py")
 
     elif user_choice == '3':
-        print("You selected Option 3")
-        # Add your code for Option 3 here
+        print("You selected Nim")
+        run_game("nim\\play.py")
 
     elif user_choice == '4':
         print("Exiting the program")
